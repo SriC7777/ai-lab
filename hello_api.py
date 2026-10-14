@@ -1,4 +1,5 @@
 import requests
+import sys
 import argparse
 
 def get_weather(lat: float, lon: float) -> dict:
@@ -9,19 +10,24 @@ def get_weather(lat: float, lon: float) -> dict:
     resp.raise_for_status()
     return resp.json()["current_weather"]
 
-if __name__ == "__main__":
+def main() -> None:
+  
+    parser = argparse.ArgumentParser(description="provide lat and long")
+    parser.add_argument("latitude", type=float)
+    parser.add_argument("longitude", type=float)
+    args = parser.parse_args()
     try:
-        parser = argparse.ArgumentParser()
-        parser.add_argument("latitude")
-        parser.add_argument("longitude")
-        args = parser.parse_args()
         w = get_weather({args.latitude}, {args.longitude})
         print(f"Temp: {w['temperature']}°C, "
             f"Wind: {w['windspeed']} km/h")
-    except (ValueError,TypeError) as e: 
-        print(e)
+    except requests.exceptions.RequestException as e: 
+        print(f"Couldn't reach the weather service: {e}",
+              file=sys.stderr)
+        sys.exit(1)
 
     finally:
         print("done")
-            
+
+if __name__ == "__main__":
+    main()
         
